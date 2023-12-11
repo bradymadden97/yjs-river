@@ -20,7 +20,6 @@
     "@codemirror/view": "^6.22.1",
     "@replit/river": "^0.8.0",
     "codemirror": "^6.0.1",
-    "it-pushable": "^3.2.3",
     "nanoid": "^5.0.4",
     "y-codemirror.next": "^0.3.2",
     "y-websocket": "^1.5.0",

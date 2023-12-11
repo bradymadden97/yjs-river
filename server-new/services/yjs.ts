@@ -17,6 +17,9 @@ class SharedDoc extends Y.Doc {
   }
 }
 
+const SYNC_DOC = 0;
+const SYNC_AWARE = 1;
+
 export const YjsServiceConstructor = () =>
   ServiceBuilder.create("yjs")
     .initialState({
@@ -31,7 +34,10 @@ export const YjsServiceConstructor = () =>
       input: Type.Union([
         // Unions seem to be unsupported currently
         // Type.Object({ connect: Type.Literal(true) }),
-        Type.Object({ input: Type.Uint8Array() }),
+        Type.Object({
+          bit: Type.Union([Type.Literal(SYNC_DOC), Type.Literal(SYNC_AWARE)]),
+          input: Type.Uint8Array(),
+        }),
       ]),
       output: Type.Object({ update: Type.Uint8Array() }),
       errors: Type.Never(),
@@ -65,7 +71,9 @@ export const YjsServiceConstructor = () =>
           }
 
           // Apply client updates to the shared doc
-          Y.applyUpdateV2(ctx.state.doc, msg.payload.input);
+          if (msg.payload.bit === SYNC_DOC) {
+            Y.applyUpdateV2(ctx.state.doc, msg.payload.input);
+          }
         }
 
         // Remove connection when stream ends

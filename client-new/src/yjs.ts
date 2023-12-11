@@ -1,6 +1,5 @@
 import { EditorView, ViewPlugin } from "@codemirror/view";
 import { getRiverClient } from "./river";
-import { Pushable } from "it-pushable";
 import * as Y from "yjs";
 import { EditorState } from "@codemirror/state";
 // @ts-ignore
@@ -8,18 +7,26 @@ import { yCollab } from "y-codemirror.next";
 
 const YDoc = new Y.Doc();
 
+// This is wacky but it works :)
+// I have to store the input type somewhere so I can push to it
+type InputType = Awaited<
+  ReturnType<
+    NonNullable<ReturnType<typeof getRiverClient>>["yjs"]["docSync"]["stream"]
+  >
+>[0];
+
 // Just a hack to allow us to show a "mirror" of the server's doc easily
 const isServerMirror = window.location.pathname === "/server";
 
 const YjsRiverConnection = ViewPlugin.define((view) => {
   let client = getRiverClient(view);
   let destroyed = false;
-  let input: Pushable<{ input: Uint8Array }, void, unknown> | undefined;
+  let input: InputType | undefined = undefined;
 
   // Push updates from client --> server
   const onUpdate = () => {
     if (input) {
-      input.push({ input: Y.encodeStateAsUpdateV2(YDoc) });
+      input.push({ input: Y.encodeStateAsUpdateV2(YDoc), bit: 0 });
     }
   };
   YDoc.on("update", onUpdate);
@@ -45,7 +52,7 @@ const YjsRiverConnection = ViewPlugin.define((view) => {
     if (client) {
       const stream = await client.yjs.docSync.stream();
       input = stream[0];
-      input.push({ input: Y.encodeStateAsUpdateV2(YDoc) });
+      input.push({ input: Y.encodeStateAsUpdateV2(YDoc), bit: 0 });
       for await (const message of stream[1]) {
         // ignore errors for now
         if (!message.ok) {
