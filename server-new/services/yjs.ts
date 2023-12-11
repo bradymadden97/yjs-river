@@ -1,17 +1,33 @@
 import { Ok, ServiceBuilder } from "@replit/river";
 import { reply } from "@replit/river/transport";
 import { Type } from "@sinclair/typebox";
+import {
+  Awareness,
+  applyAwarenessUpdate,
+  encodeAwarenessUpdate,
+} from "y-protocols/awareness.js";
 import * as Y from "yjs";
 
 class SharedDoc extends Y.Doc {
-  connections: Map<string, (update: Uint8Array) => void>;
+  connections: Map<string, (bit: 0 | 1, update: Uint8Array) => void>;
+  awareness: Awareness;
 
   constructor() {
     super();
     this.connections = new Map();
+
+    this.awareness = new Awareness(this);
+    this.awareness.setLocalState(null);
+    this.awareness.on("update", ({ added, updated, removed }) => {
+      const changed = added.concat(updated, removed);
+      for (const [_id, sync] of this.connections) {
+        sync(1, encodeAwarenessUpdate(this.awareness, changed));
+      }
+    });
+
     this.on("update", (_a, _b, doc: Y.Doc) => {
       for (const [_id, sync] of this.connections) {
-        sync(Y.encodeStateAsUpdateV2(doc));
+        sync(0, Y.encodeStateAsUpdateV2(doc));
       }
     });
   }
@@ -39,13 +55,23 @@ export const YjsServiceConstructor = () =>
           input: Type.Uint8Array(),
         }),
       ]),
-      output: Type.Object({ update: Type.Uint8Array() }),
+      output: Type.Object({
+        bit: Type.Union([Type.Literal(SYNC_DOC), Type.Literal(SYNC_AWARE)]),
+        update: Type.Uint8Array(),
+      }),
       errors: Type.Never(),
       async handler(ctx, i, o) {
         let from: string | undefined = undefined;
         let initialMessage = true;
 
         for await (const msg of i) {
+          console.log(
+            "Msg from",
+            msg.from,
+            ctx.state.doc.connections.size,
+            Array.from(ctx.state.doc.connections.keys()),
+            msg
+          );
           // Add connection when stream begins
           // We should be able to just check if we already have a connection
           // setup for `msg.from`, but we don't get a "close" mesage to
@@ -54,12 +80,13 @@ export const YjsServiceConstructor = () =>
           if (initialMessage) {
             from = msg.from;
             initialMessage = false;
-            ctx.state.doc.connections.set(msg.from, (update: Uint8Array) => {
-              o.push(reply(msg, Ok({ update })));
+            ctx.state.doc.connections.set(msg.from, (bit, update) => {
+              o.push(reply(msg, Ok({ bit, update })));
             });
 
+            // Respond with initial server state
             const initialServerState = Y.encodeStateAsUpdateV2(ctx.state.doc);
-            o.push(reply(msg, Ok({ update: initialServerState })));
+            o.push(reply(msg, Ok({ bit: 0, update: initialServerState })));
           }
 
           // If the client is a "server mirror", we're just displaying what's
@@ -74,7 +101,17 @@ export const YjsServiceConstructor = () =>
           if (msg.payload.bit === SYNC_DOC) {
             Y.applyUpdateV2(ctx.state.doc, msg.payload.input);
           }
+          // Apply client awareness updates to the shared doc
+          if (msg.payload.bit === SYNC_AWARE) {
+            applyAwarenessUpdate(
+              ctx.state.doc.awareness,
+              msg.payload.input,
+              msg.from
+            );
+          }
         }
+
+        console.log("Did we make it here with a stream?");
 
         // Remove connection when stream ends
         // This is not running as we're not getting a close message from client

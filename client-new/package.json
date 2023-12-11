@@ -18,10 +18,11 @@
     "@codemirror/lang-javascript": "^6.2.1",
     "@codemirror/state": "^6.3.2",
     "@codemirror/view": "^6.22.1",
-    "@replit/river": "^0.8.0",
+    "@replit/river": "^0.8.1",
     "codemirror": "^6.0.1",
     "nanoid": "^5.0.4",
     "y-codemirror.next": "^0.3.2",
+    "y-protocols": "^1.0.6",
     "y-websocket": "^1.5.0",
     "yjs": "^13.6.10"
   }

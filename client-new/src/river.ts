@@ -13,17 +13,44 @@ import { nanoid } from "nanoid";
 // Just a hack to allow us to show a "mirror" of the server's doc easily
 const isServerMirror = window.location.pathname === "/server";
 
-const UserId = Facet.define<string, string>({
+export const UserColor = Facet.define<string, string>({
+  combine: (f) => f[0],
+});
+
+export const UserId = Facet.define<string, string>({
   combine: (f) => f[0],
 
   enables: (f) => {
     // Show the user id in the editor for easy debugging
-    return showPanel.of((v) => {
-      const div = document.createElement("div");
-      div.style.padding = "4px";
-      div.textContent = "User ID: " + v.state.facet(f);
-      return { dom: div, top: true };
-    });
+    return [
+      UserColor.compute([f], () => {
+        return (
+          "#" + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, "0")
+        );
+      }),
+      showPanel.of((v) => {
+        const div = document.createElement("div");
+        div.textContent = "User ID: " + v.state.facet(f);
+
+        const input = document.createElement("input");
+        input.type = "color";
+        input.disabled = true;
+        input.style.marginLeft = "4px";
+        input.value = v.state.facet(UserColor);
+
+        const dom = document.createElement("div");
+        dom.style.display = "flex";
+        dom.style.alignItems = "center";
+        dom.style.padding = "4px";
+
+        dom.appendChild(div);
+        if (v.state.facet(f) !== "SERVER MIRROR") {
+          dom.appendChild(input);
+        }
+
+        return { dom, top: true };
+      }),
+    ];
   },
 });
 
@@ -64,6 +91,8 @@ const RiverClientPlugin = ViewPlugin.define(
       connect();
     }
 
+    window.addEventListener("beforeunload", disconnect);
+
     return {
       getClient() {
         return client;
@@ -77,6 +106,7 @@ const RiverClientPlugin = ViewPlugin.define(
         }
       },
       destroy: () => {
+        window.removeEventListener("beforeunload", disconnect);
         disconnect();
       },
     };
