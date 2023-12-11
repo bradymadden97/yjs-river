@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    // "lib": ["es2021", "DOM"],
+    "target": "esnext",
+    "module": "esnext",
+    "skipLibCheck": true,
+    //     "target": "ES2020",
+    //     "useDefineForClassFields": true,
+    //     "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    "types": [
+      "bun-types" // add Bun global
+    ],
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "types": [
+    "bun-types" // add Bun global
+  ]
+}

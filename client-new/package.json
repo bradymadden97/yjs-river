@@ -1,0 +1,29 @@
+{
+  "name": "yjs-river-client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "@codemirror/collab": "^6.1.1",
+    "@codemirror/lang-javascript": "^6.2.1",
+    "@codemirror/state": "^6.3.2",
+    "@codemirror/view": "^6.22.1",
+    "@replit/river": "^0.8.0",
+    "codemirror": "^6.0.1",
+    "it-pushable": "^3.2.3",
+    "nanoid": "^5.0.4",
+    "y-codemirror.next": "^0.3.2",
+    "y-websocket": "^1.5.0",
+    "yjs": "^13.6.10"
+  }
+}

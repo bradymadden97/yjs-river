@@ -1,0 +1,19 @@
+{
+  "name": "yjs-river-server",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "npx tsx index.ts"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@replit/river": "^0.8.0",
+    "@sinclair/typebox": "^0.31.28",
+    "yjs": "^13.6.10"
+  }
+}
