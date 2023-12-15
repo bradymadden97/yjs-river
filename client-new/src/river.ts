@@ -74,7 +74,7 @@ const RiverClientPlugin = ViewPlugin.define(
 
     function connect() {
       transport = new WebSocketClientTransport(
-        async () => new WebSocket("ws://localhost:3002"),
+        async () => new WebSocket(`wss://${window.location.hostname}:9000`),
         view.state.facet(UserId),
         "SERVER"
       );
